@@ -1,65 +1,78 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLineEdit, QLabel, QCheckBox
+import customtkinter as ctk
 from src.core.password_generator import generate_password
 
-class PasswordGeneratorApp(QMainWindow):
+class PasswordGeneratorApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Generador de Contraseñas")
 
-        # Layout principal
-        layout = QVBoxLayout()
+        # Configuración de la ventana principal
+        self.title("Generador de Contraseñas")
+        self.geometry("400x400")
+        self.resizable(False, False)
+
+        # Widgets
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Etiqueta de longitud
+        self.length_label = ctk.CTkLabel(self, text="Longitud de la contraseña:")
+        self.length_label.pack(pady=(20, 5))
 
         # Entrada de longitud
-        self.length_label = QLabel("Longitud de la contraseña:")
-        self.length_input = QLineEdit()
-        self.length_input.setText("12")
-        layout.addWidget(self.length_label)
-        layout.addWidget(self.length_input)
+        self.length_entry = ctk.CTkEntry(self, placeholder_text="12")
+        self.length_entry.pack(pady=5)
 
         # Opciones booleanas
-        self.include_uppercase = QCheckBox("Incluir mayúsculas")
-        self.include_uppercase.setChecked(True)  # Activado por defecto
-        layout.addWidget(self.include_uppercase)
+        self.uppercase_var = ctk.BooleanVar(value=True)
+        self.uppercase_checkbox = ctk.CTkCheckBox(self, text="Incluir mayúsculas", variable=self.uppercase_var)
+        self.uppercase_checkbox.pack(pady=5)
 
-        self.include_numbers = QCheckBox("Incluir números")
-        self.include_numbers.setChecked(True)  # Activado por defecto
-        layout.addWidget(self.include_numbers)
+        self.numbers_var = ctk.BooleanVar(value=True)
+        self.numbers_checkbox = ctk.CTkCheckBox(self, text="Incluir números", variable=self.numbers_var)
+        self.numbers_checkbox.pack(pady=5)
 
-        self.include_special_chars = QCheckBox("Incluir caracteres especiales")
-        self.include_special_chars.setChecked(True)  # Activado por defecto
-        layout.addWidget(self.include_special_chars)
+        self.special_chars_var = ctk.BooleanVar(value=False)
+        self.special_chars_checkbox = ctk.CTkCheckBox(self, text="Incluir caracteres especiales", variable=self.special_chars_var)
+        self.special_chars_checkbox.pack(pady=5)
 
         # Botón para generar contraseña
-        self.generate_button = QPushButton("Generar Contraseña")
-        self.generate_button.clicked.connect(self.generate_password)
-        layout.addWidget(self.generate_button)
+        self.generate_button = ctk.CTkButton(self, text="Generar Contraseña", command=self.generate_password)
+        self.generate_button.pack(pady=20)
 
         # Resultado
-        self.result_label = QLabel("Contraseña generada:")
-        self.result_output = QLabel("")
-        layout.addWidget(self.result_label)
-        layout.addWidget(self.result_output)
+        self.result_label = ctk.CTkLabel(self, text="Contraseña generada:")
+        self.result_label.pack(pady=(20, 5))
 
-        # Configurar el widget principal
-        container = QWidget()
-        container.setLayout(layout)
-        self.setCentralWidget(container)
+        self.result_output = ctk.CTkLabel(self, text="", wraplength=350)
+        self.result_output.pack(pady=5)
 
     def generate_password(self):
         try:
-            length = int(self.length_input.text())
+            # Obtener valores de los inputs
+            if self.length_entry.get() == "":
+                length = 12
+            else:
+                length = int(self.length_entry.get())
+            if length < 1:
+                raise ValueError("La longitud debe ser mayor que 0.")
+            # Obtener valores de las opciones
+            include_uppercase = self.uppercase_var.get()
+            include_numbers = self.numbers_var.get()
+            include_special_chars = self.special_chars_var.get()
+
+            # Generar contraseña
             password = generate_password(
                 length=length,
-                include_uppercase=self.include_uppercase.isChecked(),
-                include_numbers=self.include_numbers.isChecked(),
-                include_special_chars=self.include_special_chars.isChecked()
+                include_uppercase=include_uppercase,
+                include_numbers=include_numbers,
+                include_special_chars=include_special_chars
             )
-            self.result_output.setText(password)
+
+            # Mostrar resultado
+            self.result_output.configure(text=password)
         except ValueError:
-            self.result_output.setText("Por favor, ingresa un número válido.")
+            self.result_output.configure(text="Por favor, ingresa un número válido.")
 
 def run_gui():
-    app = QApplication([])
-    window = PasswordGeneratorApp()
-    window.show()
-    app.exec()
+    app = PasswordGeneratorApp()
+    app.mainloop()

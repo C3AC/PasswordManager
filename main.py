@@ -11,6 +11,6 @@ def main():
         run_cli()
     else:  # Si no hay argumentos, usar GUI
         run_gui()
-
+    # Ejecutar la función principal
 if __name__ == "__main__":
     main()

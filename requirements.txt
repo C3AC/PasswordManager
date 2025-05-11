@@ -1,6 +1,5 @@
 cryptography
 pyperclip
-PySide6
-argparse
+dearpygui
 passlib
 python-dotenv
