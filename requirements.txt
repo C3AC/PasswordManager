@@ -1,0 +1,6 @@
+cryptography
+pyperclip
+PySide6
+argparse
+passlib
+python-dotenv
