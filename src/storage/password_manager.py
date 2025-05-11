@@ -16,15 +16,24 @@ def load_or_create_key():
     return Fernet(key)
 
 def save_password(nombre, usuario, contrasena):
+    """
+    Guarda una nueva contraseña en el almacenamiento encriptado.
+    """
     fernet = load_or_create_key()
     datos = get_all_passwords()
-    datos.append([nombre, usuario, contrasena])
-    csv_data = "\n".join([",".join(row) for row in datos]).encode()
-    encrypted = fernet.encrypt(csv_data)
-    with open(DATA_PATH, "wb") as f:
-        f.write(encrypted)
+    if not buscar_password(nombre):
+        datos.append([nombre, usuario, contrasena])
+        csv_data = "\n".join([",".join(row) for row in datos]).encode()
+        encrypted = fernet.encrypt(csv_data)
+        with open(DATA_PATH, "wb") as f:
+            f.write(encrypted)
+    else:
+        raise ValueError(f"Ya existe una contraseña con el nombre '{nombre}'.")
 
 def get_all_passwords():
+    """
+    Devuelve todas las contraseñas almacenadas como una lista de listas.
+    """
     if not os.path.exists(DATA_PATH):
         return []
     fernet = load_or_create_key()
@@ -35,25 +44,33 @@ def get_all_passwords():
     return list(reader)
 
 def buscar_password(nombre_objetivo):
+    """
+    Busca una contraseña por su nombre y devuelve una lista de coincidencias.
+    """
     contraseñas = get_all_passwords()
-    return [fila for fila in contraseñas if fila[0].lower() == nombre_objetivo.lower()]
+    if not contraseñas:
+        raise ValueError("No hay contraseñas almacenadas.")
+    else:
+        return [fila for fila in contraseñas if fila[0].lower() == nombre_objetivo.lower()]
 
 def eliminar_password(nombre_objetivo):
+    """
+    Elimina una contraseña por su nombre. Devuelve True si se eliminó correctamente.
+    """
     contraseñas = get_all_passwords()
     contraseñas_filtradas = [fila for fila in contraseñas if fila[0].lower() != nombre_objetivo.lower()]
     
     if len(contraseñas) == len(contraseñas_filtradas):
-        print(f"No se encontró ninguna contraseña con el nombre '{nombre_objetivo}'.")
-        return
-
-    # Confirmación del usuario
-    confirmacion = input(f"¿Estás seguro de que deseas eliminar la contraseña para '{nombre_objetivo}'? (s/n): ").strip().lower()
-    if confirmacion != 's':
-        print("Operación cancelada.")
-        return
+        raise ValueError(f"No se encontró ninguna contraseña con el nombre '{nombre_objetivo}'.")
 
     if contraseñas_filtradas:
-        save_password(contraseñas_filtradas[0][0], contraseñas_filtradas[0][1], contraseñas_filtradas[0][2])
+        # Guardar las contraseñas restantes
+        csv_data = "\n".join([",".join(row) for row in contraseñas_filtradas]).encode()
+        fernet = load_or_create_key()
+        encrypted = fernet.encrypt(csv_data)
+        with open(DATA_PATH, "wb") as f:
+            f.write(encrypted)
     else:
+        # Si no quedan contraseñas, eliminar el archivo
         os.remove(DATA_PATH)
-    print(f"La contraseña para '{nombre_objetivo}' ha sido eliminada.")
+    return True

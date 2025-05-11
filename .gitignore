@@ -1,2 +1,6 @@
 # .gitignore
 venv/
+*.key
+*.bin
+__pycache__/
+*.pyc
