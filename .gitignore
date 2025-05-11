@@ -4,3 +4,6 @@ venv/
 *.bin
 *.pyc
 *__pycache__/
+build/
+dist/
+*.spec
